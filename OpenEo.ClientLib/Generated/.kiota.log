@@ -1,0 +1,26 @@
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema collection_dimension_srs is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema process_json_schema is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema process_schema is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema process_argument_value is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema data_type_schema is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/ - The schema /jobs/{job_id}/results is a polymorphic type but does not define a discriminator. This will result in serialization errors.
+Warning: KiotaBuilder OpenAPI warning: #/paths/~1/get/responses/200/content/application~1json/schema/properties/billing/properties/plans/items/properties/url - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/paths/~1.well-known~1openeo/get/responses/200/content/application~1json/schema/properties/versions/items/properties/url - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/paths/~1credentials~1oidc/get/responses/200/content/application~1json/schema/properties/providers/items/properties/issuer - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/paths/~1credentials~1oidc/get/responses/200/content/application~1json/schema/properties/providers/items/properties/default_clients/items/properties/redirect_urls/items - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/paths/~1services/post/responses/201/headers/Location/schema - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/paths/~1jobs/post/responses/201/headers/Location/schema - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/paths/~1jobs~1{job_id}~1results/get - The operation describes multiple response schemas that are divergent. Only the schema of the lowest success status code will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/conformsTo/items - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/link/properties/href - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/stac_extensions/items/anyOf/0 - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/stac_providers/items/properties/url - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/service/properties/url - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/json_schema/properties/$schema - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/json_schema/properties/$id - The format uri is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder OpenAPI warning: #/components/schemas/json_schema/properties/pattern - The format regex is not supported by Kiota and the string type will be used.
+Warning: KiotaBuilder Discriminator process_graph_json_schema is not inherited from process_json_schema.
+Warning: KiotaBuilder Discriminator process_graph_json_schema is not inherited from process_json_schema.
+Warning: KiotaBuilder Discriminator datacube_json_schema is not inherited from process_json_schema.
+Warning: KiotaBuilder Discriminator datacube_json_schema is not inherited from process_json_schema.
+Warning: KiotaBuilder Discriminator GeoJsonPoint is not inherited from GeoJsonGeometry.
