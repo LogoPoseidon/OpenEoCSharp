@@ -31,12 +31,11 @@ public static class OpenEo
         return await Connect(finalBaseUrl, accessToken);
     }
 
-    public static async Task<Connection> Connect(string url, string bearerToken)
+    private static Task<Connection> Connect(string url, string bearerToken)
     {
-        var finalBaseUrl = await GetFinalUrl(url);
         var newClient = new OpenEoClient(new HttpClientRequestAdapter(new BearerAuthenticationProvider(bearerToken))
-            { BaseUrl = finalBaseUrl });
-        return new Connection(newClient);
+            { BaseUrl = url });
+        return Task.FromResult(new Connection(newClient));
     }
 
     private static async Task<string> GetFinalUrl(string url)
