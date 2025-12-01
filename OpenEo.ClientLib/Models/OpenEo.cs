@@ -115,7 +115,8 @@ public static class OpenEo
         {
             new("grant_type", "client_credentials"),
             new("client_id", clientId),
-            new("client_secret", clientSecret)
+            new("client_secret", clientSecret),
+            new("scope", "openid")
         };
 
         var response = await http.PostAsync(tokenEndpoint, new FormUrlEncodedContent(body));
