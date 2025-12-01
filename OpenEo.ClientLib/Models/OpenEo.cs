@@ -25,17 +25,27 @@ public static class OpenEo
         var issuerUrl = await GetOidcIssuerFromOpeneo(finalBaseUrl);
 
         var tokenEndpoint = await GetTokenEndpointFromIssuer(issuerUrl);
+        
+        var tokenProvider = new ClientCredentialsAccessTokenProvider(
+            tokenUrl: tokenEndpoint,
+            clientId: clientId,
+            clientSecret: clientSecret
+        );
 
-        var accessToken = await RequestToken(tokenEndpoint, clientId, clientSecret);
+        if (Uri.TryCreate(finalBaseUrl, UriKind.Absolute, out var apiUri))
+        {
+            tokenProvider.AllowedHostsValidator.AllowedHosts = [apiUri.Host];
+        }
 
-        return await Connect(finalBaseUrl, accessToken);
-    }
-
-    private static Task<Connection> Connect(string url, string bearerToken)
-    {
-        var newClient = new OpenEoClient(new HttpClientRequestAdapter(new BearerAuthenticationProvider(bearerToken))
-            { BaseUrl = url });
-        return Task.FromResult(new Connection(newClient));
+        var authProvider = new BaseBearerTokenAuthenticationProvider(tokenProvider);
+        
+        var adapter = new HttpClientRequestAdapter(authProvider)
+        {
+            BaseUrl = finalBaseUrl
+        };
+        
+        var client = new OpenEoClient(adapter);
+        return new Connection(client);
     }
 
     private static async Task<string> GetFinalUrl(string url)
@@ -106,28 +116,5 @@ public static class OpenEo
         {
             throw new Exception($"Failed to discover token endpoint from {configUrl}: {ex.Message}");
         }
-    }
-
-    private static async Task<string> RequestToken(string tokenEndpoint, string clientId, string clientSecret)
-    {
-        using var http = new HttpClient();
-        var body = new List<KeyValuePair<string, string>>
-        {
-            new("grant_type", "client_credentials"),
-            new("client_id", clientId),
-            new("client_secret", clientSecret),
-            new("scope", "openid")
-        };
-
-        var response = await http.PostAsync(tokenEndpoint, new FormUrlEncodedContent(body));
-        var json = await response.Content.ReadAsStringAsync();
-
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception($"Token request failed ({response.StatusCode}): {json}");
-        }
-
-        using var doc = JsonDocument.Parse(json);
-        return doc.RootElement.GetProperty("access_token").GetString()!;
     }
 }
