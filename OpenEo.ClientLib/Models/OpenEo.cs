@@ -22,14 +22,15 @@ public static class OpenEo
     {
         var finalBaseUrl = await GetFinalUrl(url);
 
-        var issuerUrl = await GetOidcIssuerFromOpeneo(finalBaseUrl);
+        var (issuerUrl, providerId) = await GetOidcProviderDetails(finalBaseUrl);
 
         var tokenEndpoint = await GetTokenEndpointFromIssuer(issuerUrl);
         
         var tokenProvider = new ClientCredentialsAccessTokenProvider(
             tokenUrl: tokenEndpoint,
             clientId: clientId,
-            clientSecret: clientSecret
+            clientSecret: clientSecret,
+            providerId: providerId
         );
 
         if (Uri.TryCreate(finalBaseUrl, UriKind.Absolute, out var apiUri))
@@ -76,7 +77,7 @@ public static class OpenEo
         return finalBaseUrl;
     }
 
-    private static async Task<string> GetOidcIssuerFromOpeneo(string apiBaseUrl)
+    private static async Task<(string IssuerUrl, string ProviderId)> GetOidcProviderDetails(string apiBaseUrl)
     {
         var adapter = new HttpClientRequestAdapter(new AnonymousAuthenticationProvider()) { BaseUrl = apiBaseUrl };
         var client = new OpenEoClient(adapter);
@@ -87,12 +88,12 @@ public static class OpenEo
         {
             throw new Exception("No OIDC providers advertised by this OpenEO backend.");
         }
+        var provider = oidcResponse.Providers.First();
 
-        var issuer = oidcResponse.Providers.First().Issuer;
+        if (string.IsNullOrEmpty(provider.Issuer) || string.IsNullOrEmpty(provider.Id))
+            throw new Exception("OIDC Provider found, but Issuer URL or Provider ID is missing.");
 
-        return string.IsNullOrEmpty(issuer)
-            ? throw new Exception("OIDC Provider found, but Issuer URL is missing.")
-            : issuer;
+        return (provider.Issuer, provider.Id);
     }
 
     private static async Task<string> GetTokenEndpointFromIssuer(string issuerUrl)

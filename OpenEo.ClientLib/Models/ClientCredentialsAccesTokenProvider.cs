@@ -9,6 +9,7 @@ public class ClientCredentialsAccessTokenProvider(
     string tokenUrl,
     string clientId,
     string clientSecret,
+    string providerId,
     string scope = "openid")
     : IAccessTokenProvider
 {
@@ -33,10 +34,10 @@ public class ClientCredentialsAccessTokenProvider(
         try
         {
             if (_cachedToken != null && DateTimeOffset.UtcNow < _expiresAt)
-                return _cachedToken;
+                return $"oidc/{providerId}/{_cachedToken}";
 
             await RefreshTokenAsync(cancellationToken);
-            return _cachedToken!;
+            return $"oidc/{providerId}/{_cachedToken}";
         }
         finally
         {
