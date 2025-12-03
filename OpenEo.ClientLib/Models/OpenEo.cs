@@ -34,7 +34,7 @@ public static class OpenEo
 
         if (Uri.TryCreate(finalBaseUrl, UriKind.Absolute, out var apiUri))
         {
-            tokenProvider.AllowedHostsValidator.AllowedHosts = ["*"];
+            tokenProvider.AllowedHostsValidator.AllowedHosts = [];
         }
 
         var authProvider = new BaseBearerTokenAuthenticationProvider(tokenProvider);

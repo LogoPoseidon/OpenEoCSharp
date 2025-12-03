@@ -21,7 +21,7 @@ public class ClientCredentialsAccessTokenProvider(
 
     public AllowedHostsValidator AllowedHostsValidator { get; } = new()
     {
-        AllowedHosts = ["*"]
+        AllowedHosts = []
     };
 
     public async Task<string> GetAuthorizationTokenAsync(
