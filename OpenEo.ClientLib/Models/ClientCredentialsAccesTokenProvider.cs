@@ -5,39 +5,81 @@ using Microsoft.Kiota.Abstractions.Authentication;
 
 namespace OpenEoClientLib.Models;
 
-public class ClientCredentialsAccessTokenProvider(string tokenUrl, string clientId, string clientSecret)
+public class ClientCredentialsAccessTokenProvider(
+    string tokenUrl,
+    string clientId,
+    string clientSecret,
+    string scope = "openid")
     : IAccessTokenProvider
 {
-    public AllowedHostsValidator AllowedHostsValidator { get; } = new();
+    private static readonly HttpClient HttpClient = new();
+    
+    private string? _cachedToken;
+    private DateTimeOffset _expiresAt = DateTimeOffset.MinValue;
 
-    public async Task<string> GetAuthorizationTokenAsync(Uri uri, Dictionary<string, object>? additionalAuthenticationContext = null, CancellationToken cancellationToken = default)
+    private readonly SemaphoreSlim _lock = new(1, 1);
+
+    public AllowedHostsValidator AllowedHostsValidator { get; } = new()
     {
-        using var client = new HttpClient();
+        AllowedHosts = ["*"]
+    };
 
+    public async Task<string> GetAuthorizationTokenAsync(
+        Uri uri,
+        Dictionary<string, object>? ctx = null,
+        CancellationToken cancellationToken = default)
+    {
+        await _lock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_cachedToken != null && DateTimeOffset.UtcNow < _expiresAt)
+                return _cachedToken;
+
+            await RefreshTokenAsync(cancellationToken);
+            return _cachedToken!;
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private async Task RefreshTokenAsync(CancellationToken cancellationToken)
+    {
         var request = new HttpRequestMessage(HttpMethod.Post, tokenUrl);
 
-        var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
+        var authString = Convert.ToBase64String(
+            Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}")
+        );
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", authString);
 
-        var form = new Dictionary<string, string>
+        request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             { "grant_type", "client_credentials" },
-            { "scope", "openid" } 
-        };
+            { "scope", scope }
+        });
 
-        request.Content = new FormUrlEncodedContent(form);
+        var response = await HttpClient.SendAsync(request, cancellationToken);
+        var responseText = await response.Content.ReadAsStringAsync(cancellationToken);
 
-        var response = await client.SendAsync(request, cancellationToken);
-        
         if (!response.IsSuccessStatusCode)
+            throw new Exception($"Token fetch failed: {response.StatusCode} - {responseText}");
+
+        var json = JsonDocument.Parse(responseText);
+
+        if (!json.RootElement.TryGetProperty("access_token", out var tokenProp))
+            throw new Exception("Token endpoint did not return access_token");
+
+        _cachedToken = tokenProp.GetString();
+
+        if (json.RootElement.TryGetProperty("expires_in", out var expiresProp))
         {
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new Exception($"Token fetch failed: {response.StatusCode} - {errorContent}");
+            var expiresIn = expiresProp.GetInt32();
+            _expiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 30);
         }
-
-        await using var content = await response.Content.ReadAsStreamAsync(cancellationToken);
-        var json = await JsonDocument.ParseAsync(content, cancellationToken: cancellationToken);
-
-        return json.RootElement.TryGetProperty("access_token", out var tokenProp) ? tokenProp.GetString()! : throw new Exception("Response did not contain an access_token");
+        else
+        {
+            _expiresAt = DateTimeOffset.UtcNow.AddMinutes(5);
+        }
     }
 }
